@@ -29,8 +29,8 @@ def particleIntegrator(state: Point[Particle], input: Point[CartesianPlane])-> P
     #output is the new particle state
     output = deepcopy(state)
 
-    output['pos']['x']  += input['particle']['vel']['x']
-    output['pos']['y']  += input['particle']['vel']['y']
+    output['pos']['x']  += state['particle']['vel']['x']
+    output['pos']['y']  += state['particle']['vel']['y']
 
     output['vel']['x']  += input['x']
     output['vel']['y']  += input['y']
@@ -45,13 +45,44 @@ def randomPoint(input:Point[EmptySpace])-> Point[CartesianPlane]:
 
     return Point(CartesianPlane, data)
 
-### ---
-BlockType = type(particleIntegrator)
+@block
+def observePosition(input:Point[Particle])-> Point[CartesianPlane]:
+    pos = input.data['pos']
+    return Point(CartesianPlane, pos)
+
+@block
+def chase(state: Point[Particle], ref: Point[CartesianPlane]) -> Point[CartesianPlane]:
+
+    acc = {}
+    acc['x'] = ref.data['x']-state.data['pos']['x']
+    acc['y'] = ref.data['y']-state.data['pos']['y']
+
+    return Point(CartesianPlane, acc)
 
 @space
-class ParticleAgent:
-    plant: Particle
-    maxspeed: float
-    reference: ObservedParticle
-    strategy: BlockType
+class WorldState:
+    cat: Particle
+    laser:Particle
 
+# this block contains my wiring
+# in the future wiring DSL should allow this to be done with piping logic
+@block
+def worldDynamics(state: Point[WorldState])->Point[WorldState]:
+
+    #split into subspaces
+    cat = deepcopy(state['cat'])
+    laser = deepcopy(state['laser'])
+
+    #move the laser pointer
+    emptyPoint = Point(EmptySpace, {})
+    laserAcc = randomPoint(emptyPoint)
+    laser = particleIntegrator(laser, laserAcc)
+
+    #chase the laser pointer
+    observedLaser = observePosition(laser)
+    catAcc = chase(cat, observedLaser)
+    cat = particleIntegrator(cat, catAcc)
+
+    data = {'cat':cat.data, 'laser':laser.data }
+    
+    return Point(WorldState, data)
