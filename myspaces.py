@@ -18,11 +18,6 @@ class Particle:
     pos:CartesianPlane
     vel:CartesianPlane
 
-@space
-class ObservedParticle:
-    pos:CartesianPlane
-    prev:CartesianPlane
-
 @block
 def particleIntegrator(state: Point[Particle], input: Point[CartesianPlane])-> Point[Particle]:
     #input is acceleration
