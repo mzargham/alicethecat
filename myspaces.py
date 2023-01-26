@@ -18,10 +18,13 @@ class Particle:
     pos:CartesianPlane
     vel:CartesianPlane
 
+#f(x,u)->x
 @block
 def particleIntegrator(state: Point[Particle], input: Point[CartesianPlane])-> Point[Particle]:
     #input is acceleration
     #output is the new particle state
+    #outputType = type(Point[Particle])
+
     output = deepcopy(state)
 
     output['pos']['x']  += state['particle']['vel']['x']
@@ -32,6 +35,7 @@ def particleIntegrator(state: Point[Particle], input: Point[CartesianPlane])-> P
 
     return output
 
+# g()-> u
 @block
 def randomPoint(input:Point[EmptySpace])-> Point[CartesianPlane]:
     data = {}
@@ -40,11 +44,13 @@ def randomPoint(input:Point[EmptySpace])-> Point[CartesianPlane]:
 
     return Point(CartesianPlane, data)
 
+# y(x)->r
 @block
 def observePosition(input:Point[Particle])-> Point[CartesianPlane]:
     pos = input.data['pos']
     return Point(CartesianPlane, pos)
 
+# h(x,r) -> u
 @block
 def chase(state: Point[Particle], ref: Point[CartesianPlane]) -> Point[CartesianPlane]:
 
@@ -81,3 +87,5 @@ def worldDynamics(state: Point[WorldState])->Point[WorldState]:
     data = {'cat':cat.data, 'laser':laser.data }
     
     return Point(WorldState, data)
+
+worldDynamics = Block.wiring( "piping expression")
